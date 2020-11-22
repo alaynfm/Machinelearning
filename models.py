@@ -70,7 +70,7 @@ class RegressionModel(object):
         Runs the model for a batch of examples.
 
         Inputs:
-            x: a node with shape (batch_size x 1). En este caso cada ejemplo solo est· compuesto por un rasgo
+            x: a node with shape (batch_size x 1). En este caso cada ejemplo solo est√° compuesto por un rasgo
         Returns:
             A node with shape (batch_size x 1) containing predicted y-values.
             Como es un modelo de regresion, cada valor y tambien tendra un unico valor
@@ -128,8 +128,13 @@ class DigitClassificationModel(object):
         # TEN ENCUENTA QUE TIENES 10 CLASES, ASI QUE LA ULTIMA CAPA TENDRA UNA SALIDA DE 10 VALORES,
         # UN VALOR POR CADA CLASE
 
-        output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
+        #output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         "*** YOUR CODE HERE ***"
+        self.batch_size = 1
+        self.w0 = nn.Parameter(784, 100)
+        self.b0 = nn.Parameter(1, 100)
+        self.w1 = nn.Parameter(100, 10)
+        self.b1 = nn.Parameter(1, 10)
 
     def run(self, x):
         """
@@ -147,6 +152,10 @@ class DigitClassificationModel(object):
             output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         """
         "*** YOUR CODE HERE ***"
+        xw1 = nn.Linear(x, self.w0)
+        r1 = nn.ReLU(nn.AddBias(xw1, self.b0))
+        xw2 = nn.Linear(r1, self.w1)
+        return nn.AddBias(xw2, self.b1)
 
     def get_loss(self, x, y):
         """
@@ -165,7 +174,7 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"#NO ES NECESARIO QUE LO IMPLEMENTEIS, SE OS DA HECHO
-         return nn.SoftmaxLoss(self.run(x), y)# COMO VEIS LLAMA AL RUN PARA OBTENER POR CADA BATCH
+        return nn.SoftmaxLoss(self.run(x), y)# COMO VEIS LLAMA AL RUN PARA OBTENER POR CADA BATCH
                                               # LOS 10 VALORES DEL "COSENO". TENIENDO EL Y REAL POR CADA EJEMPLO
                                               # APLICA SOFTMAX PARA CALCULAR EL COSENO MAX
                                               # (COMO UNA PROBABILIDAD), Y ESA SERA SU PREDICCION,
@@ -179,12 +188,23 @@ class DigitClassificationModel(object):
         NO LO TENEIS QUE IMPLEMENTAR, PERO SABED QUE EMPLEA EL RESULTADO DEL SOFTMAX PARA CALCULAR
         EL NUM DE EJEMPLOS DEL TRAIN QUE SE HAN CLASIFICADO CORRECTAMENTE 
         """
-        batch_size = self.batch_size
-        while dataset.get_validation_accuracy() < 0.97:
-            #ITERAR SOBRE EL TRAIN EN LOTES MARCADOS POR EL BATCH SIZE COMO HABEIS HECHO EN LOS OTROS EJERCICIOS
-            #ACTUALIZAR LOS PESOS EN BASE AL ERROR loss = self.get_loss(x, y) QUE RECORDAD QUE GENERA
-            #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
-            "*** YOUR CODE HERE ***"
+        while True:
+
+            # print(nn.Constant(dataset.x), nn.Constant(dataset.y))
+
+            for x, y in dataset.iterate_once(self.batch_size):
+                loss = self.get_loss(x, y)
+                grad = nn.gradients(loss, [self.w0, self.w1, self.b0, self.b1])
+
+                # print(nn.as_scalar(nn.DotProduct(grad[0],grad[0])))
+                self.w0.update(grad[0], -0.005)
+                self.w1.update(grad[1], -0.005)
+                self.b0.update(grad[2], -0.005)
+                self.b1.update(grad[3], -0.005)
+
+            print(dataset.get_validation_accuracy())
+            if dataset.get_validation_accuracy() >= 0.97:
+                return
 
 class LanguageIDModel(object):
     """
