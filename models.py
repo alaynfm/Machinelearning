@@ -28,6 +28,7 @@ class PerceptronModel(object):
         Deberiais obtener el producto escalar (o producto punto) que es "equivalente" a la distancia del coseno
         """
         "*** YOUR CODE HERE ***"
+        return nn.DotProduct(self.w, x)
 
     def get_prediction(self, x):
         """
@@ -37,6 +38,10 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
+        if nn.as_scalar(self.run(x)) >= 0.0:
+            return 1
+        else:
+            return -1
 
     def train(self, dataset):
         """
@@ -44,6 +49,15 @@ class PerceptronModel(object):
         Hasta que TODOS los ejemplos del train esten bien clasificados. Es decir, hasta que la clase predicha en se corresponda con la real en TODOS los ejemplos del train
         """
         "*** YOUR CODE HERE ***"
+        exit=False
+        while exit==False:
+            keepOn = False
+            for x, y in dataset.iterate_once(1):
+                if nn.as_scalar(y) != self.get_prediction(x):
+                    keepOn = True
+                    nn.Parameter.update(self.w, x, nn.as_scalar(y))
+            if keepOn==False:
+                exit=True
 
 class RegressionModel(object):
     """
@@ -128,13 +142,9 @@ class DigitClassificationModel(object):
         # TEN ENCUENTA QUE TIENES 10 CLASES, ASI QUE LA ULTIMA CAPA TENDRA UNA SALIDA DE 10 VALORES,
         # UN VALOR POR CADA CLASE
 
-        #output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
+        output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         "*** YOUR CODE HERE ***"
-        self.batch_size = 1
-        self.w0 = nn.Parameter(784, 100)
-        self.b0 = nn.Parameter(1, 100)
-        self.w1 = nn.Parameter(100, 10)
-        self.b1 = nn.Parameter(1, 10)
+
 
     def run(self, x):
         """
@@ -152,10 +162,7 @@ class DigitClassificationModel(object):
             output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         """
         "*** YOUR CODE HERE ***"
-        xw1 = nn.Linear(x, self.w0)
-        r1 = nn.ReLU(nn.AddBias(xw1, self.b0))
-        xw2 = nn.Linear(r1, self.w1)
-        return nn.AddBias(xw2, self.b1)
+
 
     def get_loss(self, x, y):
         """
@@ -188,23 +195,6 @@ class DigitClassificationModel(object):
         NO LO TENEIS QUE IMPLEMENTAR, PERO SABED QUE EMPLEA EL RESULTADO DEL SOFTMAX PARA CALCULAR
         EL NUM DE EJEMPLOS DEL TRAIN QUE SE HAN CLASIFICADO CORRECTAMENTE 
         """
-        while True:
-
-            # print(nn.Constant(dataset.x), nn.Constant(dataset.y))
-
-            for x, y in dataset.iterate_once(self.batch_size):
-                loss = self.get_loss(x, y)
-                grad = nn.gradients(loss, [self.w0, self.w1, self.b0, self.b1])
-
-                # print(nn.as_scalar(nn.DotProduct(grad[0],grad[0])))
-                self.w0.update(grad[0], -0.005)
-                self.w1.update(grad[1], -0.005)
-                self.b0.update(grad[2], -0.005)
-                self.b1.update(grad[3], -0.005)
-
-            print(dataset.get_validation_accuracy())
-            if dataset.get_validation_accuracy() >= 0.97:
-                return
 
 class LanguageIDModel(object):
     """
