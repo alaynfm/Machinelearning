@@ -71,9 +71,9 @@ class RegressionModel(object):
         # Initialize your model parameters here
         # For example:
         self.batch_size = 20
-        self.w0 = nn.Parameter(1, 5)
-        self.b0 = nn.Parameter(1, 5)
-        self.w1 = nn.Parameter(5, 1)
+        self.w0 = nn.Parameter(1, 20)
+        self.b0 = nn.Parameter(1, 20)
+        self.w1 = nn.Parameter(20, 1)
         self.b1 = nn.Parameter(1, 1)
         self.lr = -0.01
 
@@ -89,10 +89,10 @@ class RegressionModel(object):
         """
         "*** YOUR CODE HERE ***"
         prod1 = nn.Linear(x, self.w0)
-        plus1 = nn.AddBias(prod1, self.b0)
+        plus1 = nn.ReLU(nn.AddBias(prod1, self.b0))
         prod2 = nn.Linear(plus1, self.w1)
         plus2 = nn.AddBias(prod2,self.b1)
-        return nn.ReLU(plus2)
+        return plus2
 
     def get_loss(self, x, y):
         """
@@ -122,7 +122,7 @@ class RegressionModel(object):
             #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
 
             "*** YOUR CODE HERE ***"
-            for x, y in dataset.iterate_once(1):
+            for x, y in dataset.iterate_once(batch_size):
                 grad = nn.gradients(self.get_loss(x, y), [self.w0, self.w1, self.b0, self.b1])
                 self.w0.update(grad[0], self.lr)
                 self.w1.update(grad[1], self.lr)
@@ -151,6 +151,12 @@ class DigitClassificationModel(object):
 
         output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         "*** YOUR CODE HERE ***"
+        self.batch_size = 20
+        self.w0 = nn.Parameter(1, 5)
+        self.b0 = nn.Parameter(1, 5)
+        self.w1 = nn.Parameter(5, 1)
+        self.b1 = nn.Parameter(1, 1)
+        self.lr = -0.01
 
 
     def run(self, x):
@@ -169,7 +175,11 @@ class DigitClassificationModel(object):
             output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         """
         "*** YOUR CODE HERE ***"
-
+        prod1 = nn.Linear(x, self.w0)
+        plus1 = nn.AddBias(prod1, self.b0)
+        prod2 = nn.Linear(plus1, self.w1)
+        plus2 = nn.AddBias(prod2, self.b1)
+        return nn.ReLU(plus2)
 
     def get_loss(self, x, y):
         """
@@ -202,6 +212,16 @@ class DigitClassificationModel(object):
         NO LO TENEIS QUE IMPLEMENTAR, PERO SABED QUE EMPLEA EL RESULTADO DEL SOFTMAX PARA CALCULAR
         EL NUM DE EJEMPLOS DEL TRAIN QUE SE HAN CLASIFICADO CORRECTAMENTE 
         """
+        batch_size = self.batch_size
+        total_acuracy = 0
+        while total_acuracy < 0.975:
+            for x, y in dataset.iterate_once(batch_size):
+                grad = nn.gradients(self.get_loss(x, y), [self.w0, self.w1, self.b0, self.b1])
+                self.w0.update(grad[0], self.lr)
+                self.w1.update(grad[1], self.lr)
+                self.b0.update(grad[2], self.lr)
+                self.b1.update(grad[3], self.lr)
+            total_acuracy = dataset.get_validation_accuracy()
 
 class LanguageIDModel(object):
     """
@@ -221,6 +241,7 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+
 
     def run(self, xs):
         """
@@ -253,6 +274,7 @@ class LanguageIDModel(object):
         """
         "*** YOUR CODE HERE ***"
 
+
     def get_loss(self, xs, y):
         """
         Computes the loss for a batch of examples.
@@ -268,9 +290,9 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+
