@@ -49,15 +49,15 @@ class PerceptronModel(object):
         Hasta que TODOS los ejemplos del train esten bien clasificados. Es decir, hasta que la clase predicha en se corresponda con la real en TODOS los ejemplos del train
         """
         "*** YOUR CODE HERE ***"
-        exit = False
-        while not exit:
+        exit=False
+        while exit==False:
             keepOn = False
             for x, y in dataset.iterate_once(1):
                 if nn.as_scalar(y) != self.get_prediction(x):
                     keepOn = True
                     nn.Parameter.update(self.w, x, nn.as_scalar(y))
-            if not keepOn:
-                exit = True
+            if keepOn==False:
+                exit=True
 
 class RegressionModel(object):
     """
@@ -70,14 +70,12 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         # For example:
-        # self.batch_size = 20
-        # self.w0 = nn.Parameter(1, 5)
-        # self.b0 = nn.Parameter(1, 5)
-        # self.w1 = nn.Parameter(5, 1)
-        # self.b1 = nn.Parameter(1, 1)
-        # self.lr = -0.01
-        #
-        "*** YOUR CODE HERE ***"
+        self.batch_size = 20
+        self.w0 = nn.Parameter(1, 5)
+        self.b0 = nn.Parameter(1, 5)
+        self.w1 = nn.Parameter(5, 1)
+        self.b1 = nn.Parameter(1, 1)
+        self.lr = -0.01
 
     def run(self, x):
         """
@@ -90,6 +88,11 @@ class RegressionModel(object):
             Como es un modelo de regresion, cada valor y tambien tendra un unico valor
         """
         "*** YOUR CODE HERE ***"
+        prod1 = nn.Linear(x, self.w0)
+        plus1 = nn.AddBias(prod1, self.b0)
+        prod2 = nn.Linear(plus1, self.w1)
+        plus2 = nn.AddBias(prod2,self.b1)
+        return nn.ReLU(plus2)
 
     def get_loss(self, x, y):
         """
@@ -100,18 +103,17 @@ class RegressionModel(object):
             y: a node with shape (batch_size x 1), containing the true y-values
                 to be used for training
         Returns: a loss node
-                ----> ES FACIL COPIA Y PEGA ESTO Y ANNADE LA VARIABLE QUE HACE FALTA PARA CALCULAR EL ERROR 
+                ----> ES FACIL COPIA Y PEGA ESTO Y ANNADE LA VARIABLE QUE HACE FALTA PARA CALCULAR EL ERROR
                 return nn.SquareLoss(self.run(x),ANNADE LA VARIABLE QUE ES NECESARIA AQUI), para medir el error, necesitas comparar el resultado de tu prediccion con .... que?
         """
-        "*** YOUR CODE HERE ***"
-
+        "***   YOUR CODE HERE ***"
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
-        
+
         """
-        
         batch_size = self.batch_size
         total_loss = 100000
         while total_loss > 0.02:
@@ -120,9 +122,14 @@ class RegressionModel(object):
             #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
 
             "*** YOUR CODE HERE ***"
-
+            for x, y in dataset.iterate_once(1):
+                grad = nn.gradients(self.get_loss(x, y), [self.w0, self.w1, self.b0, self.b1])
+                self.w0.update(grad[0], self.lr)
+                self.w1.update(grad[1], self.lr)
+                self.b0.update(grad[2], self.lr)
+                self.b1.update(grad[3], self.lr)
             total_loss = nn.as_scalar(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)))#AQUI SE CALCULA OTRA VEZ EL ERROR PERO SOBRE TODO EL TRAIN A LA VEZ (CUIDADO!! NO ES LO MISMO el x de antes QUE dataset.x)
-            
+
 class DigitClassificationModel(object):
     """
     A model for handwritten digit classification using the MNIST dataset.
