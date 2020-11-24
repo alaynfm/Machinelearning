@@ -49,15 +49,15 @@ class PerceptronModel(object):
         Hasta que TODOS los ejemplos del train esten bien clasificados. Es decir, hasta que la clase predicha en se corresponda con la real en TODOS los ejemplos del train
         """
         "*** YOUR CODE HERE ***"
-        exit=False
-        while exit==False:
+        exit = False
+        while not exit:
             keepOn = False
             for x, y in dataset.iterate_once(1):
                 if nn.as_scalar(y) != self.get_prediction(x):
                     keepOn = True
                     nn.Parameter.update(self.w, x, nn.as_scalar(y))
-            if keepOn==False:
-                exit=True
+            if not keepOn:
+                exit = True
 
 class RegressionModel(object):
     """
