@@ -152,10 +152,10 @@ class DigitClassificationModel(object):
         output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 "COSENOS"
         "*** YOUR CODE HERE ***"
         self.batch_size = 20
-        self.w0 = nn.Parameter(1, 5)
-        self.b0 = nn.Parameter(1, 5)
-        self.w1 = nn.Parameter(5, 1)
-        self.b1 = nn.Parameter(1, 1)
+        self.w0 = nn.Parameter(784, 120)
+        self.b0 = nn.Parameter(1, 120)
+        self.w1 = nn.Parameter(120, 10)
+        self.b1 = nn.Parameter(1, 10)
         self.lr = -0.01
 
 
@@ -176,10 +176,10 @@ class DigitClassificationModel(object):
         """
         "*** YOUR CODE HERE ***"
         prod1 = nn.Linear(x, self.w0)
-        plus1 = nn.AddBias(prod1, self.b0)
+        plus1 = nn.ReLU(nn.AddBias(prod1, self.b0))
         prod2 = nn.Linear(plus1, self.w1)
         plus2 = nn.AddBias(prod2, self.b1)
-        return nn.ReLU(plus2)
+        return plus2
 
     def get_loss(self, x, y):
         """
